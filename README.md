@@ -115,12 +115,19 @@ The goal was to design a scalable, secure, and monitored 3-tier architecture usi
 
 ## 📂 Project Structure
 aws-ecommerce-app/
+│
 ├── app/                    # Application source code
+│
 ├── docs/                   # Architecture diagrams and screenshots
-├── .github/workflows/      # CI/CD pipeline
+│
+├── .github/
+│   └── workflows/          # CI/CD pipeline configuration
+│
 ├── Dockerfile              # Container definition
-├── README.md               # You are here
-└── cloudformation.yaml     # Optional: Infrastructure as Code
+│
+├── cloudformation.yaml     # Infrastructure as Code (IaC)
+│
+└── README.md               # Project documentation
 
 ---
 
