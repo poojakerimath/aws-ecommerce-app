@@ -17,28 +17,56 @@ The goal was to design a scalable, secure, and monitored 3-tier architecture usi
 ---
 
 ## 🏗️ Architecture
-[ Internet Users ]
-        |
-        v
-   [ Route53 + ACM SSL ]
-        |
-        v
-   [ CloudFront ]  <----> [ S3 Bucket: product-images ]
-        |
-        v
-   [ Application Load Balancer ]  in Public Subnet
-        |
-        v
-   [ ECS Fargate Service ]  in Private Subnet across 2 AZs
+                    +-------------------+
+                    |       Users       |
+                    +---------+---------+
+                              |
+                              v
+                    +-------------------+
+                    |     Amazon Route 53|
+                    +---------+---------+
+                              |
+                              v
+                    +-------------------+
+                    |    Amazon CloudFront|
+                    +---------+---------+
+                              |
+                +-------------+-------------+
+                |                           |
+                v                           v
+      +-------------------+       +-------------------+
+      |   Frontend (S3)    |       | Application Load  |
+      |  HTML/CSS/React    |       |     Balancer      |
+      +-------------------+       +---------+---------+
+                                            |
+                                            v
+                                  +-------------------+
+                                  |     EC2 Instance  |
+                                  |  Backend (Spring  |
+                                  |  Boot/Node.js)    |
+                                  +---------+---------+
+                                            |
+                    +-----------------------+-----------------------+
+                    |                                               |
+                    v                                               v
+          +-------------------+                         +-------------------+
+          |     Amazon RDS    |                         |      Amazon S3    |
+          | (MySQL/PostgreSQL)|                         |  Product Images   |
+          +-------------------+                         +-------------------+
 
-v
-[ SQS: OrderQueue ]  <--- [ SNS: OrderPlaced ]
-v
-   [ RDS MySQL Multi-AZ ]  in Private Subnet
-       
-   [ CloudWatch + CloudTrail ] monitors everything
-   
-   [ GitHub Actions ] --> [ ECR ] --> [ ECS Fargate ]  CI/CD
+                                            |
+                                            v
+                                  +-------------------+
+                                  |   Amazon Cognito  |
+                                  | Authentication    |
+                                  +-------------------+
+
+                                            |
+                                            v
+                                  +-------------------+
+                                  | Amazon CloudWatch |
+                                  |     Monitoring    |
+                                  +-------------------+
 
 ---
 
