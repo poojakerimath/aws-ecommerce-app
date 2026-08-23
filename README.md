@@ -145,8 +145,49 @@ aws-ecommerce-app/
 - Containerizing and deploying apps with ECS Fargate
 - Implementing CI/CD for cloud applications
 - Using CloudWatch for monitoring and alerting
+---
 
 ---
+
+## 🚀 Implementation Journey
+
+### Phase 1 - VPC & Networking
+- Created custom VPC with CIDR 10.0.0.0/16 for isolated networking
+- Created 2 public subnets across 2 different Availability Zones for high availability
+- Attached Internet Gateway for public access
+- Created Security Group allowing inbound traffic on port 5000 and 80
+- Verified VPC and subnets in console
+
+**Screenshots:** `docs/vpc.png`, `docs/subnet.png`, `docs/security-group.png`
+
+---
+
+### Phase 2 - RDS Database
+- Created DB subnet group using the 2 subnets from Phase 1
+- Launched MySQL RDS instance in private subnet for security
+- Connected RDS to VPC security group for controlled access
+- Disabled public access to keep database private
+- Verified database is running and connected
+
+**Screenshot:** `docs/rds.png`
+
+---
+
+### Phase 3 - Docker & ECR
+- Built custom Docker image named ecommerce-app from Dockerfile
+- Created private ECR repository named ecommerce-app in us-east-1
+- Tagged local image with ECR repository URI
+- Pushed image to ECR successfully
+- Verified image is available in ECR console as latest tag
+
+**Screenshots:** `docs/docker-build.png`, `docs/ecr-repo.png`, `docs/ecr-push.png`
+
+---
+
+### 📦 Final Output
+- ECR Image: `578620462075.dkr.ecr.us-east-1.amazonaws.com/ecommerce-app:latest`
+- All proof stored in `docs/` folder
+- Application runs on port 5000
 
 ## 👩‍💻 Author
 Girija
