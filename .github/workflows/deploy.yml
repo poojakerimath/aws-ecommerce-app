@@ -6,7 +6,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: ecommerce
+  ECR_REPOSITORY: ecommerce-app
   ECS_CLUSTER: ecommerce-cluster
   ECS_SERVICE: ecommerce-service
   ECS_TASK_DEFINITION: ecommerce-task
