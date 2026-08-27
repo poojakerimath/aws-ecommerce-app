@@ -10,7 +10,7 @@ env:
   ECS_CLUSTER: ecommerce-cluster
   ECS_SERVICE: ecommerce-service
   ECS_TASK_DEFINITION: ecommerce-task
-  CONTAINER_NAME: ecommerce-container
+  CONTAINER_NAME: Main
 
 jobs:
   deploy:
