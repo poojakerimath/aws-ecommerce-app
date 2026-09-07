@@ -1,0 +1,41 @@
+Perfect, here is your *Day 3 - Part 2 Cheat Sheet* - Compute Only. Save this same like Day 1.
+
+### SERVICES IN THIS PART - Compute Only (4 Services)
+
+1.  *ECR* - Private Fridge - stores your Docker images, ECS pulls from here
+2.  *ECS Fargate* - Kitchen - runs containers, NO servers to manage, in Private Subnets 2 AZs
+3.  *ECS Cluster / Task Def / Service* - Cluster = Hotel, Task Def = Recipe paper, Service = Manager
+4.  *Docker + Dockerfile* - Box + How to build box, Multi-stage = small secure box
+
+### PART 2 WORKFLOW - Compute Only
+
+This is what happens INSIDE green box - Kitchen Part:
+
+`ECR (Image) -> ECS Task Definition (0.5 vCPU / 1GB RAM, Port 3000, ENV: RDS_ENDPOINT) -> ECS Service (Desired=2 per AZ) -> ECS Fargate Tasks (AZ1:2 tasks + AZ2:2 tasks) -> ALB Target Group Health Check ( /health -> 200 OK) -> If OK, ALB sends user traffic`
+
+Image Pull flow (hidden but important):
+`Fargate Private Task -> Private RT (0.0.0.0/0 -> NAT) -> NAT Public -> IGW -> ECR Public -> Image Pulled -> Container Starts`
+
+Crash flow (auto-heal):
+`Container Crash -> ALB health check FAIL -> ECS Service detects Desired (2) != Running (1) -> Kills bad task -> Launches NEW task from same Task Def -> New task registers to ALB -> Traffic back`
+
+### 6 QUESTIONS YOU MUST REVISE TONIGHT - With Answers
+
+*Q1: Explain your Dockerfile line by line? Why multi-stage?*
+Ans: `FROM node:18 AS builder` - big kitchen for build. `WORKDIR /app` - make folder. `COPY package.json + RUN npm install` - install deps first for caching. `COPY . + RUN build` - build app. `FROM node:18-alpine` - second small clean kitchen 5MB. `COPY --from=builder` - take only dist folder. `EXPOSE + CMD` - open port and start. Multi-stage = 1GB -> 100MB, faster pull, cheaper Fargate, secure - no build tools for hacker.
+
+*Q2: Why Fargate not EC2?*
+Ans: EC2 launch type - I manage EC2 OS patching, scaling, pay even if container idle, need Auto Scaling Group. Fargate - serverless, AWS manages server, I just give vCPU/RAM, pay per sec only when running. As per diagram, Fargate gives HA across 2 AZs automatically. For e-commerce variable traffic, Fargate cheaper and zero OS work. Pricing: EC2 = per hour for server, Fargate = per vCPU-sec + GB-sec.
+
+*Q3: What happens if container crashes? How ECS auto-heals?*
+Ans: ECS Service is manager with Desired Count = 2. ALB does health check on /health every 30s. If container crashes, health check fails 2 times -> ECS marks task unhealthy -> Service kills it and launches new task from Task Definition in same Private Subnet. Other AZ tasks still serve users, so no downtime. That's why diagram shows 2 AZs.
+
+*Q4: Task Definition vs Service vs Cluster?*
+Ans: Cluster = logical grouping name e.g. ecom-cluster. Task Definition = WHAT to run - image URL from ECR, 0.5 CPU, 1GB, env vars for RDS, logs to CloudWatch. Service = HOW MANY to keep running + HOW - Desired=4, min 50% healthy, attach to ALB, auto-replace failed. Simple: Task Def is blueprint, Service is supervisor, Cluster is building.
+
+*Q5: Where is Docker image stored? How ECS gets it?*
+Ans: Image pushed to ECR. ECS Task has executionRole that allows ECR pull. But Fargate is in Private Subnet, so it cannot go to internet directly - needs NAT Gateway in Public Subnet -> IGW -> ECR. OR best practice: Create VPC Endpoints for ECR + S3 + CloudWatch Logs, then no NAT needed, cheaper. If NAT dies, new tasks fail to pull image - old tasks still run.
+
+*Q6: How scaling works in Fargate?*
+Ans: 2 levels. 1) Service Auto Scaling: CloudWatch Alarm on CPU 70% -> add 2 more tasks. 2) ALB spreads traffic to all tasks. Fargate launches in seconds vs EC2 minutes. On Demand - diagram says Scalable (On Demand).
+

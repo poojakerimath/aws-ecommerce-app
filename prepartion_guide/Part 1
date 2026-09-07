@@ -1,0 +1,20 @@
+VPC / Subnets (Most asked)
+Q1: Why 2 public + 2 private? Why not 1 public 1 private?
+Ans: 2 AZs = High Availability. See your diagram - Availability Zone 1 + Zone 2. If ap-south-1a power fails, ECS in 1b still runs, ALB routes there. 1 AZ = single point of failure = interview reject.
+Q2: Why RDS in private? In diagram it says "Only Kitchen Access"
+Ans: Security. RDS has no public IP. If in public, anyone on internet can try brute force MySQL port 3306. In private, only ECS SG can reach. Defense in depth. Also no data cost.
+Q3: How does ECS in private pull image from ECR? How EC2 reaches internet from private?
+Ans: Via NAT Gateway. Flow: ECS (10.0.3.0) -> Private RT (0.0.0.0/0 -> NAT) -> NAT in Public (10.0.1.0) -> Public RT (0.0.0.0/0 -> IGW) -> Internet -> ECR. ECS has only private IP, NAT does SNAT.
+Q4: What if NAT Gateway dies?
+Ans: Private can't go OUT. Existing ECS tasks keep running, but new tasks fail - can't pull image. Fix for prod: NAT in both AZs. For your project to save $32/mo: Use VPC Endpoints for ECR and S3 - private link, no NAT needed, free.
+Q5: How ALB in public talks to ECS in private? ALB has public IP, ECS private IP - different networks?
+Ans: They are in same VPC 10.0.0.0/16. VPC routing is local always. ALB knows private IPs of ECS via Target Group. Security Group allows: ECS SG inbound from ALB SG ID, not IP. So ALB -> Private IP on app port 80/3000.
+Q6: CIDR 10.0.0.0/16 - why? How many IPs per /24?
+Ans: /16 = 65,536 IPs. /24 = 254 usable IPs per subnet. I chose /16 to get 256 x /24s for future. If I used /24 for VPC, only one subnet.
+Q7: SG vs NACL with example from YOUR project?
+Ans: SG - Stateful, ENI level, allow only. I used chaining: ALB SG allow 443 from 0.0.0.0/0, ECS SG allow from ALB SG only, RDS SG allow 3306 from ECS SG only. If packet allowed in, auto allowed out.
+NACL - Stateless, subnet level, allow/deny, need to allow both ways. I left default allow all because SG already secure. If I want to block a bad IP at subnet level, I'd use NACL.
+Q8: What if you put RDS in public subnet by mistake?
+Ans: Risk - gets public IP, exposed. Even with SG restricting, still attack surface. Must move to private, enable Publicly Accessible = No. Best practice in your diagram - Store Room private.BONUS killer question:
+Q9: Why did you put SQS+SNS also inside VPC green box?
+Ans: Good catch - SQS/SNS are managed, outside VPC, but I access them via VPC Endpoints (private) so ECS doesn't need NAT to push messages. Order flow: ECS -> SQS (Queue) -> SNS (Notification). Secure + cheap.
