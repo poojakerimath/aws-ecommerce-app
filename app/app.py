@@ -10,5 +10,11 @@ def home():
 def login():
     return render_template('login.html')
 
+
+@app.route('/orders')
+def orders():
+    return render_template('orders.html')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
