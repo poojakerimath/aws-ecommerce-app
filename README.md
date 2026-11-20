@@ -1,7 +1,7 @@
 # AWS Ecommerce App 
 *A 3-Tier, Highly Available E-Commerce Application Deployed with ECS Fargate*
 
-![Architecture](docs/architecture-v1.png)
+![Architecture](docs/Architecture.png)
 
 ---
 
