@@ -15,6 +15,10 @@ def login():
 def orders():
     return render_template('orders.html')
 
+@app.route('/products')
+def products():
+    return render_template('products.html')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 
